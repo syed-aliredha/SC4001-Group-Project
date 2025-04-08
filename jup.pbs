@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -q normal
+#PBS -l select=1:ngpus=1
+#PBS -l walltime=3:00:00
+#PBS -N jupyter
+#PBS -j oe
+#PBS -o stbert_linear.txt
+# Change directory to where job was submitted
+
+source myenv/bin/activate
+cd scratch/nndl
+
+# get a random port
+PORT=$(shuf -i8000-8999 -n1)
+
+module load cuda/11.8.0
+module load python/3.11.7-gcc11
+module load singularity
+
+#python -m pip uninstall transformers
+#python -m pip install transformers[torch] optuna
+python -m pip install -U sentence-transformers
+
+singularity exec --nv -B /scratch,/app \
+/app/apps/containers/pytorch/pytorch-nvidia-22.04-py3.sif \
+jupyter nbconvert --to notebook --execute SentenceBERT_Linear_Probing.ipynb
